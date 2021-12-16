@@ -12,47 +12,45 @@ $db2->execute('use test2');
 
 //commit
 $uuid1 = uniqid();
-var_dump($uuid1);
+echo "commit uuid1: $uuid1\n";
 $db1->execute("XA START '${uuid1}'");
 $db1->execute('update test set val = ? where id = ?', [$val1, 1]);
 $db1->execute("XA END '${uuid1}'");
 
 $uuid2 = uniqid();
-var_dump($uuid2);
+echo "commit uuid2: $uuid2\n";
 $db2->execute("XA START '${uuid2}'");
 $db2->execute('update test set val = ? where id = ?', [$val2, 1]);
 $db2->execute("XA END '${uuid2}'");
 
 $db1->execute("XA PREPARE '${uuid1}'");
-$db1->execute("XA PREPARE '${uuid2}'");
+$db2->execute("XA PREPARE '${uuid2}'");
 
-$db2->execute("XA COMMIT '${uuid1}'");
+$db1->execute("XA COMMIT '${uuid1}'");
 $db2->execute("XA COMMIT '${uuid2}'");
 
 $data1 = $db1->getData("select * from test where id = 1");
 $data2 = $db2->getData("select * from test where id = 1");
 assert($data1[0]['val'] == $val1);
 assert($data2[0]['val'] == $val2);
-var_dump($data1);
-var_dump($data2);
 
 //rollback
 $uuid1 = uniqid();
-var_dump($uuid1);
+echo "rollback uuid1: $uuid1\n";
 $db1->execute("XA START '${uuid1}'");
 $db1->execute('update test set val = ? where id = ?', [$val2, 1]);
 $db1->execute("XA END '${uuid1}'");
 
 $uuid2 = uniqid();
-var_dump($uuid2);
+echo "rollback uuid2: $uuid2\n";
 $db2->execute("XA START '${uuid2}'");
 $db2->execute('update test set val = ? where id = ?', [$val1, 1]);
 $db2->execute("XA END '${uuid2}'");
 
 $db1->execute("XA PREPARE '${uuid1}'");
-$db1->execute("XA PREPARE '${uuid2}'");
+$db2->execute("XA PREPARE '${uuid2}'");
 
-$db2->execute("XA ROLLBACK '${uuid1}'");
+$db1->execute("XA ROLLBACK '${uuid1}'");
 $db2->execute("XA ROLLBACK '${uuid2}'");
 
 $data1 = $db1->getData("select * from test where id = 1");

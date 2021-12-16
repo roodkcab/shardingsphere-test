@@ -16,7 +16,7 @@ class DB
 	public static function instance($host, $port, $db, $username, $password)
 	{
 		$key = md5(serialize([$host, $port, $db, $username, $password]));
-		var_dump($key);
+		echo "new connection serialize: {$key}\n";
 		if (empty(self::$instance[$key])) {
 			self::$instance[$key] = new static($host, $port, $db, $username, $password);
 		}
